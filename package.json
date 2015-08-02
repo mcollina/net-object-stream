@@ -1,6 +1,6 @@
 {
   "name": "net-object-stream",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Turn any binary stream into an object stream",
   "main": "nos.js",
   "scripts": {
