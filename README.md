@@ -1,4 +1,4 @@
-# net-object-stream
+# net-object-stream&nbsp;&nbsp;[![Build Status](https://travis-ci.org/mcollina/net-object-stream.png)](https://travis-ci.org/mcollina/net-object-stream)
 
 Turn any binary stream into an object stream, with multiple codec support
 
