@@ -3,6 +3,7 @@
 var test = require('tape')
 var through2 = require('through2')
 var duplexify = require('duplexify')
+var msgpack = require('msgpack5')
 var nos = require('./')
 
 function genPair () {
@@ -57,5 +58,26 @@ test('sends multiple messages', function (t) {
     second.once('data', function (data) {
       t.deepEqual(data, msg2, 'msg2 matches')
     })
+  })
+})
+
+test('supports a different codec', function (t) {
+  t.plan(2)
+
+  var pair = genPair()
+  var first = nos(pair.a, { codec: msgpack() })
+  var second = nos(pair.b, { codec: msgpack() })
+
+  // Buffers can be encoded in msgpack, but not in JSON
+  var msg1 = { hello: new Buffer('world') }
+  var msg2 = { hello: new Buffer('matteo') }
+
+  first.write(msg1)
+  second.on('data', function (data) {
+    t.deepEqual(data, msg1, 'msg1 matches')
+  })
+  second.write(msg2)
+  first.on('data', function (data) {
+    t.deepEqual(data, msg2, 'msg2 matches')
   })
 })
