@@ -4,6 +4,7 @@ var test = require('tape')
 var through2 = require('through2')
 var duplexify = require('duplexify')
 var msgpack = require('msgpack5')
+var pump = require('pump')
 var nos = require('./')
 
 function genPair () {
@@ -12,8 +13,8 @@ function genPair () {
   var bIn = through2()
   var bOut = through2()
 
-  aOut.pipe(bIn)
-  bOut.pipe(aIn)
+  pump(aOut, bIn)
+  pump(bOut, aIn)
 
   return {
     a: duplexify.obj(aOut, aIn),
@@ -79,5 +80,29 @@ test('supports a different codec', function (t) {
   second.write(msg2)
   first.on('data', function (data) {
     t.deepEqual(data, msg2, 'msg2 matches')
+  })
+})
+
+test('allows half open streams', function (t) {
+  t.plan(2)
+
+  var pair = genPair()
+  var first = nos(pair.a)
+  var second = nos(pair.b)
+  var msg1 = { hello: 'world' }
+
+  second.end()
+
+  // let's put first on flowing mode
+  first.on('data', function () {})
+
+  first.on('end', function () {
+    t.pass('first ends')
+
+    second.on('data', function (data) {
+      t.deepEqual(data, msg1, 'msg1 matches')
+    })
+
+    first.write(msg1)
   })
 })
