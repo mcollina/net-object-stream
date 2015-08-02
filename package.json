@@ -1,0 +1,36 @@
+{
+  "name": "net-object-stream",
+  "version": "0.0.1",
+  "description": "Turn any binary stream into an object stream",
+  "main": "nos.js",
+  "scripts": {
+    "test": "tape test.js | faucet"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcollina/net-object-stream.git"
+  },
+  "keywords": [
+    "object",
+    "stream",
+    "buffer",
+    "network"
+  ],
+  "author": "Matteo Collina <hello@matteocollina.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mcollina/net-object-stream/issues"
+  },
+  "homepage": "https://github.com/mcollina/net-object-stream#readme",
+  "dependencies": {
+    "bl": "^1.0.0",
+    "duplexify": "^3.4.2",
+    "pump": "^1.0.0",
+    "through2": "^2.0.0",
+    "varint": "^4.0.0"
+  },
+  "devDependencies": {
+    "faucet": "0.0.1",
+    "tape": "^4.0.1"
+  }
+}
