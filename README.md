@@ -25,10 +25,27 @@ server.listen(4200, function () {
 })
 ```
 
-
 ## `netObjectStream(stream, [opts])`
 
 Wraps `stream` into a Duplex object stream, recognized opts:
+
+* `codec`: an object with a `encode` and `decode` method, which will
+  be used to encode messages. Valid encoding libraries are
+  [protocol-buffers](http://npm.im/protocol-buffers) and
+  [msgpack5](http://npm.im/msgpack5). The default one is JSON.
+
+## `netObjectStream.encoder([opts])`
+
+Creates an encoder for the `netObjectStream` protocol, recognized opts:
+
+* `codec`: an object with a `encode` and `decode` method, which will
+  be used to encode messages. Valid encoding libraries are
+  [protocol-buffers](http://npm.im/protocol-buffers) and
+  [msgpack5](http://npm.im/msgpack5). The default one is JSON.
+
+## `netObjectStream.decoder([opts])`
+
+Creates a decoder for the `netObjectStream` protocol, recognized opts:
 
 * `codec`: an object with a `encode` and `decode` method, which will
   be used to encode messages. Valid encoding libraries are

@@ -16,20 +16,36 @@ var jsonCodec = {
   }
 }
 
-function netObjectStream (source, opts) {
-  opts = opts || {}
+function getCodec (opts) {
+  var codec = jsonCodec
+  if (opts && opts.codec) {
+    codec = opts.codec
+  }
+  return codec
+}
 
-  var readable = through2.obj(decode)
+function encoder (opts) {
   var writable = through2.obj(encode)
+  writable._codec = getCodec(opts)
+  return writable
+}
+
+function decoder (opts) {
+  var readable = through2.obj(decode)
+  readable._codec = getCodec(opts)
+  readable._bl = bl()
+  readable._leftToRead = 0
+
+  return readable
+}
+
+function netObjectStream (source, opts) {
+
+  var readable = decoder(opts)
+  var writable = encoder(opts)
 
   pump(source, readable)
   pump(writable, source)
-
-  readable._codec = opts.codec || jsonCodec
-  writable._codec = readable._codec
-
-  readable._bl = bl()
-  readable._leftToRead = 0
 
   return duplexify.obj(writable, readable)
 }
@@ -59,5 +75,8 @@ function encode (obj, enc, callback) {
   this.push(toWrite)
   callback()
 }
+
+netObjectStream.encoder = encoder
+netObjectStream.decoder = decoder
 
 module.exports = netObjectStream

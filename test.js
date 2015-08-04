@@ -106,3 +106,23 @@ test('allows half open streams', function (t) {
     first.write(msg1)
   })
 })
+
+test('without duplexify', function (t) {
+  t.plan(2)
+
+  var channel = through2()
+  var encoder = nos.encoder()
+  var decoder = nos.decoder()
+  var msg = { 'hello': 'world' }
+
+  encoder.pipe(channel).pipe(decoder)
+
+  encoder.end(msg)
+  decoder.on('data', function (data) {
+    t.deepEqual(data, msg, 'msg1 matches')
+  })
+
+  decoder.on('end', function () {
+    t.pass('ended')
+  })
+})
