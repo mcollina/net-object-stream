@@ -126,3 +126,22 @@ test('without duplexify', function (t) {
     t.pass('ended')
   })
 })
+
+test('without streams', function (t) {
+  t.plan(1)
+
+  var channel = through2()
+  var parser = nos.parser()
+  var msg = { 'hello': 'world' }
+
+  channel.on('data', function (buf) {
+    parser.parse(buf)
+  })
+
+  parser.on('message', function (data) {
+    t.deepEqual(data, msg, 'msg1 matches')
+  })
+
+  nos.writeToStream(msg, channel)
+  channel.end()
+})

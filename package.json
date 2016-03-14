@@ -7,7 +7,10 @@
     "lint": "standard",
     "test": "tape test.js | faucet"
   },
-  "precommit": ["lint", "test"],
+  "precommit": [
+    "lint",
+    "test"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcollina/net-object-stream.git"
@@ -27,6 +30,8 @@
   "dependencies": {
     "bl": "^1.0.0",
     "duplexify": "^3.4.2",
+    "inherits": "^2.0.1",
+    "process-nextick-args": "^1.0.6",
     "pump": "^1.0.0",
     "through2": "^2.0.0",
     "varint": "^4.0.0"

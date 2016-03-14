@@ -1,15 +1,17 @@
 'use strict'
 
-var empty = new Buffer(0)
 var duplexify = require('duplexify')
 var through2 = require('through2')
 var bl = require('bl')
 var pump = require('pump')
 var varint = require('varint')
+var nextTick = require('process-nextick-args')
+var inherits = require('inherits')
+var EventEmitter = require('events').EventEmitter
 
 var jsonCodec = {
   encode: function (obj) {
-    return new Buffer(JSON.stringify(obj))
+    return JSON.stringify(obj)
   },
   decode: function (buf) {
     return JSON.parse(buf)
@@ -32,15 +34,15 @@ function encoder (opts) {
 
 function decoder (opts) {
   var readable = through2.obj(decode)
-  readable._codec = getCodec(opts)
-  readable._bl = bl()
-  readable._leftToRead = 0
+  readable._parser = new Parser(opts)
+  readable._parser.on('message', function (msg) {
+    readable.push(msg)
+  })
 
   return readable
 }
 
 function netObjectStream (source, opts) {
-
   var readable = decoder(opts)
   var writable = encoder(opts)
 
@@ -51,22 +53,60 @@ function netObjectStream (source, opts) {
 }
 
 function decode (buf, enc, callback) {
+  this._parser.parse(buf)
+  callback()
+}
+
+function Parser (opts) {
+  if (!(this instanceof Parser)) {
+    return new Parser(opts)
+  }
+
+  this._codec = getCodec(opts)
+  this._bl = bl()
+  this._leftToRead = 0
+
+  this._states = [
+    '_parseHeader',
+    '_parsePayload'
+  ]
+  this._stateCounter = 0
+}
+
+inherits(Parser, EventEmitter)
+
+Parser.prototype.parse = function (buf) {
   this._bl.append(buf)
 
-  if (this._leftToRead === 0) {
-    this._leftToRead = varint.decode(this._bl.slice(0, 4)) || 0
-    this._bl.consume(varint.decode.bytes)
-  } else if (this._bl.length >= this._leftToRead) {
-    this.push(this._codec.decode(this._bl.slice(0, this._leftToRead)))
-    this._bl.consume(this._leftToRead)
-    this._leftToRead = 0
+  while (this._bl.length > 0 && this[this._states[this._stateCounter]]()) {
+    this._stateCounter++
+
+    if (this._stateCounter >= this._states.length) {
+      this._stateCounter = 0
+    }
   }
 
-  if (this._bl.length > 0) {
-    this._transform(empty, null, callback)
-  } else {
-    callback()
+  return this._bl.length
+}
+
+Parser.prototype._parseHeader = function () {
+  var result = varint.decode(this._bl.slice(0, 8)) || 0
+  if (result !== undefined) {
+    this._leftToRead = result
   }
+  this._bl.consume(varint.decode.bytes)
+  return true
+}
+
+Parser.prototype._parsePayload = function () {
+  if (this._bl.length >= this._leftToRead) {
+    console.log('parsepayload!', this._bl.length, this._leftToRead)
+    this.emit('message', this._codec.decode(this._bl.slice(0, this._leftToRead)))
+    this._bl.consume(this._leftToRead)
+    this._leftToRead = -1
+    return true
+  }
+  return false
 }
 
 function encode (obj, enc, callback) {
@@ -78,5 +118,33 @@ function encode (obj, enc, callback) {
 
 netObjectStream.encoder = encoder
 netObjectStream.decoder = decoder
+
+function uncork (stream) {
+  stream.uncork()
+}
+
+var defaultOpts = {
+  codec: jsonCodec
+}
+
+function writeToStream (msg, opts, stream) {
+  if (!stream) {
+    stream = opts
+    opts = defaultOpts
+  }
+
+  if (stream.cork) {
+    stream.cork()
+    nextTick(uncork, stream)
+  }
+  var encode = opts.codec.encode
+  var toWrite = encode(msg)
+
+  stream.write(new Buffer(varint.encode(Buffer.byteLength(toWrite))))
+  return stream.write(toWrite)
+}
+
+netObjectStream.parser = Parser
+netObjectStream.writeToStream = writeToStream
 
 module.exports = netObjectStream
