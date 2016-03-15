@@ -52,6 +52,31 @@ Creates a decoder for the `netObjectStream` protocol, recognized opts:
   [protocol-buffers](http://npm.im/protocol-buffers) and
   [msgpack5](http://npm.im/msgpack5). The default one is JSON.
 
+## `netObjectStream.parser([opts])`
+
+Creates a parser for the `netObjectStream` protocol, recognized opts:
+
+* `codec`: an object with a `encode` and `decode` method, which will
+  be used to encode messages. Valid encoding libraries are
+  [protocol-buffers](http://npm.im/protocol-buffers) and
+  [msgpack5](http://npm.im/msgpack5). The default one is JSON.
+
+The parser have a `parser.parse(buf)` function to add data to id.
+It will emit `'message'` events when it is able to parse an object.
+
+## `netObjectStream.writeToStream(msg, [opts], stream)`
+
+Write `msg` to the given `stream`, recognized options:
+
+* `codec`: an object with a `encode` and `decode` method, which will
+  be used to encode messages. Valid encoding libraries are
+  [protocol-buffers](http://npm.im/protocol-buffers) and
+  [msgpack5](http://npm.im/msgpack5). The default one is JSON.
+
+## Acknowledgements
+
+This project is kindly sponsored by [nearForm](http://nearform.com).
+
 ## License
 
 MIT
