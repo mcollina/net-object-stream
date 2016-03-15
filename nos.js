@@ -76,6 +76,10 @@ function Parser (opts) {
 inherits(Parser, EventEmitter)
 
 Parser.prototype.parse = function (buf) {
+  if (!buf || buf.length === 0) {
+    return
+  }
+
   this._bl.append(buf)
 
   while (this._bl.length > 0 && this[this._states[this._stateCounter]]()) {
@@ -93,14 +97,15 @@ Parser.prototype._parseHeader = function () {
   var result = varint.decode(this._bl.slice(0, 8)) || 0
   if (result !== undefined) {
     this._leftToRead = result
+    this._bl.consume(varint.decode.bytes)
+    return true
+  } else {
+    return false
   }
-  this._bl.consume(varint.decode.bytes)
-  return true
 }
 
 Parser.prototype._parsePayload = function () {
   if (this._bl.length >= this._leftToRead) {
-    console.log('parsepayload!', this._bl.length, this._leftToRead)
     this.emit('message', this._codec.decode(this._bl.slice(0, this._leftToRead)))
     this._bl.consume(this._leftToRead)
     this._leftToRead = -1
@@ -111,7 +116,7 @@ Parser.prototype._parsePayload = function () {
 
 function encode (obj, enc, callback) {
   var toWrite = this._codec.encode(obj)
-  this.push(new Buffer(varint.encode(toWrite.length)))
+  this.push(new Buffer(varint.encode(calcLength(toWrite))))
   this.push(toWrite)
   callback()
 }
@@ -127,6 +132,14 @@ var defaultOpts = {
   codec: jsonCodec
 }
 
+function calcLength (obj) {
+  if (typeof obj === 'string') {
+    return Buffer.byteLength(obj)
+  } else {
+    return obj.length
+  }
+}
+
 function writeToStream (msg, opts, stream) {
   if (!stream) {
     stream = opts
@@ -140,7 +153,7 @@ function writeToStream (msg, opts, stream) {
   var encode = opts.codec.encode
   var toWrite = encode(msg)
 
-  stream.write(new Buffer(varint.encode(Buffer.byteLength(toWrite))))
+  stream.write(new Buffer(varint.encode(calcLength(toWrite))))
   return stream.write(toWrite)
 }
 
