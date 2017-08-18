@@ -28,19 +28,20 @@
   },
   "homepage": "https://github.com/mcollina/net-object-stream#readme",
   "dependencies": {
-    "bl": "^1.0.0",
-    "duplexify": "^3.4.2",
-    "inherits": "^2.0.1",
-    "process-nextick-args": "^1.0.6",
-    "pump": "^1.0.0",
-    "through2": "^2.0.0",
-    "varint": "^4.0.0"
+    "bl": "^1.2.1",
+    "duplexify": "^3.5.1",
+    "inherits": "^2.0.3",
+    "process-nextick-args": "^1.0.7",
+    "pump": "^1.0.2",
+    "safe-buffer": "^5.1.1",
+    "through2": "^2.0.3",
+    "varint": "^5.0.0"
   },
   "devDependencies": {
     "faucet": "0.0.1",
-    "msgpack5": "^3.1.0",
-    "pre-commit": "^1.1.1",
-    "standard": "^5.0.0",
-    "tape": "^4.0.1"
+    "msgpack5": "^3.5.0",
+    "pre-commit": "^1.2.2",
+    "standard": "^10.0.3",
+    "tape": "^4.8.0"
   }
 }

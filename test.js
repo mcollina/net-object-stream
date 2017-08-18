@@ -6,6 +6,7 @@ var duplexify = require('duplexify')
 var msgpack = require('msgpack5')
 var pump = require('pump')
 var nos = require('./')
+var Buffer = require('safe-buffer').Buffer
 
 function genPair () {
   var aIn = through2()
@@ -70,8 +71,8 @@ test('supports a different codec', function (t) {
   var second = nos(pair.b, { codec: msgpack() })
 
   // Buffers can be encoded in msgpack, but not in JSON
-  var msg1 = { hello: new Buffer('world') }
-  var msg2 = { hello: new Buffer('matteo') }
+  var msg1 = { hello: Buffer.from('world') }
+  var msg2 = { hello: Buffer.from('matteo') }
 
   first.write(msg1)
   second.on('data', function (data) {
@@ -143,5 +144,26 @@ test('without streams', function (t) {
   })
 
   nos.writeToStream(msg, channel)
+  channel.end()
+})
+
+test('write to strem should accept a callback', function (t) {
+  t.plan(2)
+
+  var channel = through2()
+  var parser = nos.parser()
+  var msg = { 'hello': 'world' }
+
+  channel.on('data', function (buf) {
+    parser.parse(buf)
+  })
+
+  parser.on('message', function (data) {
+    t.deepEqual(data, msg, 'msg1 matches')
+  })
+
+  nos.writeToStream(msg, channel, null, function () {
+    t.pass('called')
+  })
   channel.end()
 })

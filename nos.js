@@ -8,6 +8,7 @@ var varint = require('varint')
 var nextTick = require('process-nextick-args')
 var inherits = require('inherits')
 var EventEmitter = require('events').EventEmitter
+var Buffer = require('safe-buffer').Buffer
 
 var jsonCodec = {
   encode: function (obj) {
@@ -140,7 +141,7 @@ function calcLength (obj) {
   }
 }
 
-function writeToStream (msg, opts, stream) {
+function writeToStream (msg, opts, stream, callback) {
   if (!stream) {
     stream = opts
     opts = defaultOpts
@@ -153,8 +154,8 @@ function writeToStream (msg, opts, stream) {
   var encode = opts.codec.encode
   var toWrite = encode(msg)
 
-  stream.write(new Buffer(varint.encode(calcLength(toWrite))))
-  return stream.write(toWrite)
+  stream.write(Buffer.from(varint.encode(calcLength(toWrite))))
+  return stream.write(toWrite, callback)
 }
 
 netObjectStream.parser = Parser

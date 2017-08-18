@@ -64,7 +64,7 @@ Creates a parser for the `netObjectStream` protocol, recognized opts:
 The parser have a `parser.parse(buf)` function to add data to id.
 It will emit `'message'` events when it is able to parse an object.
 
-## `netObjectStream.writeToStream(msg, [opts], stream)`
+## `netObjectStream.writeToStream(msg, [opts], stream, [callback])`
 
 Write `msg` to the given `stream`, recognized options:
 
